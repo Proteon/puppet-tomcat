@@ -77,6 +77,8 @@ define tomcat::instance (
   $java_version      = 'openjdk_1_7_0',
   $tomcat_version    = undef,
   $tomee_version     = undef,
+  $rotatelogs        = false,
+  $rotatelogs_file_size = 1024M,
   $catalina_opts     = [
     '-d64',
     '-XX:SurvivorRatio=65536',
@@ -372,15 +374,30 @@ define tomcat::instance (
     target => "/usr/share/tomcat${tomcat::version}/bin/bootstrap.jar",
     notify => Tomcat::Service[$name],
   }
+  
+  if ( ! $rotatelogs) {
+    file { "${instance_home}/tomcat/bin/catalina.sh":
+      ensure => file,
+      source => "/usr/share/tomcat${tomcat::version}/bin/catalina.sh",
+      owner  => 'root',
+      group  => 'root',
+      mode   => '755',
+      notify => Tomcat::Service[$name],
+    } 
+  } else {
+    package { "apache2-utils":
+      ensure => "installed"
+    }
 
-  file { "${instance_home}/tomcat/bin/catalina.sh":
-    ensure => file,
-    source => "/usr/share/tomcat${tomcat::version}/bin/catalina.sh",
-    owner  => 'root',
-    group  => 'root',
-    mode   => '755',
-    notify => Tomcat::Service[$name],
-  }
+    file { "${instance_home}/tomcat/bin/catalina.sh":
+      content => template('tomcat/catalina.sh.erb'),
+      owner  => 'root',
+      group  => 'root',
+      mode   => '755',
+      notify => Tomcat::Service[$name],
+    }
+ }
+
 
   file { "${instance_home}/tomcat/bin/digest.sh":
     ensure => link,
