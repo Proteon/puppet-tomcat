@@ -383,7 +383,7 @@ elif [ "$1" = "start" ] ; then
       -Dcatalina.home=\"$CATALINA_HOME\" \
       -Djava.io.tmpdir=\"$CATALINA_TMPDIR\" \
       org.apache.catalina.startup.Bootstrap "$@" start \
-      <% if @rotatelogs %>  "2>&1" \| /usr/bin/rotatelogs  -t \"$CATALINA_OUT\" <%= @rotatelogs_file_size %> &
+      <% if @rotatelogs %>  "2>&1" \| <%= @rotatelogs_bin %> <%= @rotatelogs_options %> \"$CATALINA_OUT\" <%= @rotatelogs_file_size %> &
       <% else %> >> "$CATALINA_OUT" 2>&1 "&" <% end%>
 
   else
@@ -393,7 +393,7 @@ elif [ "$1" = "start" ] ; then
       -Dcatalina.home=\"$CATALINA_HOME\" \
       -Djava.io.tmpdir=\"$CATALINA_TMPDIR\" \
       org.apache.catalina.startup.Bootstrap "$@" start \
-      <% if @rotatelogs %>  "2>&1" \| /usr/bin/rotatelogs  -t \"$CATALINA_OUT\" <%= @rotatelogs_file_size %> &
+      <% if @rotatelogs %>  "2>&1" \| <%= @rotatelogs_bin %> <%= @rotatelogs_options %> \"$CATALINA_OUT\" <%= @rotatelogs_file_size %> &
       <% else %> >> "$CATALINA_OUT" 2>&1 "&" <% end%>
 
   fi

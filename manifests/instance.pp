@@ -78,6 +78,8 @@ define tomcat::instance (
   $tomcat_version    = undef,
   $tomee_version     = undef,
   $rotatelogs        = false,
+  $rotatelogs_bin    = '/usr/sbin/rotatelogs',
+  $rotatelogs_options = '',
   $rotatelogs_file_size = 1024M,
   $catalina_opts     = [
     '-d64',
