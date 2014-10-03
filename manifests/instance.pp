@@ -387,10 +387,11 @@ define tomcat::instance (
       notify => Tomcat::Service[$name],
     } 
   } else {
-    package { "apache2-utils":
-      ensure => "installed"
+    if (!defined(Package['apache2-utils'])) {
+      package { 'apache2-utils':
+        ensure => "installed"
+      }
     }
-
     file { "${instance_home}/tomcat/bin/catalina.sh":
       content => template('tomcat/catalina.sh.erb'),
       owner  => 'root',
