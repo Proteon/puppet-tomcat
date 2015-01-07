@@ -39,7 +39,7 @@
 	
 		&connectors;
 
-		<Engine name="Catalina" defaultHost="localhost">
+		<Engine name="Catalina" defaultHost="localhost" <% if @jvmroute %> jvmRoute="<%= @jvmroute %>" <% end %> >
 
       		&engine-cluster;
 

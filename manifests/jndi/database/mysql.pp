@@ -71,7 +71,16 @@ define tomcat::jndi::database::mysql (
     $jmx_enabled        = true,
     $auto_reconnect     = true,
     $validation_query   = 'SELECT 1',
+    $loadbalanced	= false,
 ) {
+	
+    if ( $loadbalanced ) {
+	$jdbc_prefix = 'jdbc:mysql:loadbalance:'
+    }
+    else {
+	$jdbc_prefix = 'jdbc:mysql:'
+    }
+
     tomcat::jndi::resource { "${instance}:${resource_name}":
         instance      => $instance,
         resource_name => $resource_name,
@@ -80,7 +89,7 @@ define tomcat::jndi::database::mysql (
             {'username' => $username},
             {'password' => $password},
             {'driverClassName' => $driver},
-            {'url' => "jdbc:mysql://${host}/${database}?useUnicode=${use_unicode}&amp;characterEncoding=${character_encoding}&amp;useFastDateParsing=${fast_date_parsing}&amp;autoReconnect=${auto_reconnect}"},
+            {'url' => "${jdbc_prefix}//${host}/${database}?useUnicode=${use_unicode}&amp;characterEncoding=${character_encoding}&amp;useFastDateParsing=${fast_date_parsing}&amp;autoReconnect=${auto_reconnect}"},
             {'initialSize'=> $initial_size },
             {'maxActive' => $max_active },
             {'maxIdle' => $max_idle },

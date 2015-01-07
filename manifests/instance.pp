@@ -67,6 +67,7 @@ define tomcat::instance (
   $jmx_port          = 8050,
   $jmx_ssl           = false,
   $jmx_authenticate  = false,
+  $jvmroute	     = undef,
   $max_heap          = '1024m',
   $min_heap          = '1024m',
   $min_perm          = '384m',
