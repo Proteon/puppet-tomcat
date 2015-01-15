@@ -59,6 +59,7 @@ define tomcat::jndi::database::mysql (
     $instance,
     $resource_name      = 'jdbc/MysqlPool',
     $host               = 'localhost',
+    $hosts              = [],
     $driver             = 'com.mysql.jdbc.Driver',
     $use_unicode        = true,
     $character_encoding = 'UTF-8',
@@ -71,15 +72,34 @@ define tomcat::jndi::database::mysql (
     $jmx_enabled        = true,
     $auto_reconnect     = true,
     $validation_query   = 'SELECT 1',
-    $loadbalanced	= false,
+    $loadbalanced       = false,
+    $additional_properties = [],
 ) {
-	
+
     if ( $loadbalanced ) {
-	$jdbc_prefix = 'jdbc:mysql:loadbalance:'
+        $jdbc_prefix = 'jdbc:mysql:loadbalance:'
+        $subname = 'loadbalance'
+    } else {
+        $jdbc_prefix = 'jdbc:mysql:'
+        $subname = undef
     }
-    else {
-	$jdbc_prefix = 'jdbc:mysql:'
+
+    if ( empty($hosts) ) {
+        $_hosts = [$host]
+    } else {
+        $_hosts = $hosts
     }
+
+    $subprotocol = 'mysql'
+    $_fixed_properties = [
+        { 'useUnicode'         => $use_unicode },
+        { 'characterEncoding'  => $character_encoding },
+        { 'useFastDateParsing' => $fast_date_parsing },
+        { 'autoReconnect'      => $auto_reconnect },
+    ]
+    $properties = concat($_fixed_properties, $additional_properties)
+
+    $_uri = inline_template('jdbc:<%= @subprotocol %>:<% if @subname %><%= @subname %>:<% end %>//<% @_hosts.each_with_index do |host,index| -%><%= host %><%= "," if index < (_hosts.size - 1) %><% end -%>/<%= @database %>?<% @properties.each_with_index do |property,index| -%><% property.keys.each do |key| -%><%= key %>=<%= property[key] %><%= "&amp;" if index < (properties.size - 1) %><% end -%><% end -%>')
 
     tomcat::jndi::resource { "${instance}:${resource_name}":
         instance      => $instance,
@@ -89,7 +109,7 @@ define tomcat::jndi::database::mysql (
             {'username' => $username},
             {'password' => $password},
             {'driverClassName' => $driver},
-            {'url' => "${jdbc_prefix}//${host}/${database}?useUnicode=${use_unicode}&amp;characterEncoding=${character_encoding}&amp;useFastDateParsing=${fast_date_parsing}&amp;autoReconnect=${auto_reconnect}"},
+            {'url' => $_uri},
             {'initialSize'=> $initial_size },
             {'maxActive' => $max_active },
             {'maxIdle' => $max_idle },
