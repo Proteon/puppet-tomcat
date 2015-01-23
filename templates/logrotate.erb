@@ -1,0 +1,9 @@
+/opt/tomcat/sites/<%= @name %>/tomcat/logs/catalina.out {
+    copytruncate
+    daily
+    rotate <%= @rotate_number %>
+    compress
+    delaycompress
+    missingok
+    create 640 <%= @name %> <%= @name %>
+}
