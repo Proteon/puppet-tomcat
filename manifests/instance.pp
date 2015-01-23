@@ -78,7 +78,8 @@ define tomcat::instance (
   $java_version      = 'openjdk_1_7_0',
   $tomcat_version    = undef,
   $tomee_version     = undef,
-  $rotatelogs        = false,
+  $logrotate         = false, # use a logrotate config
+  $rotatelogs        = false, # use a rotatelogs binary
   $rotatelogs_bin    = '/usr/sbin/rotatelogs',
   $rotatelogs_options = '',
   $rotatelogs_file_size = 1024M,
@@ -401,6 +402,22 @@ define tomcat::instance (
       notify => Tomcat::Service[$name],
     }
  }
+
+    if ( $logrotate ) {
+        ensure_packages(['logrotate'])
+        if ( is_numeric($logrotate) ) {
+            $rotate_number = $logrotate # days
+        } else {
+            $rotate_number = 32 # days
+        }
+        file { "/etc/logrotate.d/tomcat.${name}":
+            content => template('tomcat/logrotate.erb'),
+            owner   => 'root',
+            group   => 'root',
+            mode    => '0640',
+            require => Package['logrotate'],
+        }
+    }
 
 
   file { "${instance_home}/tomcat/bin/digest.sh":
