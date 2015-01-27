@@ -59,7 +59,7 @@
 # Copyright 2013 Proteon.
 #
 define tomcat::instance (
-  $shutdown_port     = 8005,
+  $shutdown_port     = -1,
   $apr_enabled       = true,
   $pidfile_enabled   = true,
   $jmx_enabled       = false,
