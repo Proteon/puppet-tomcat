@@ -20,7 +20,10 @@
 #
 # Copyright 2013 Proteon.
 #
-class tomcat ($version = $tomcat::params::version) inherits tomcat::params {
+class tomcat (
+    $version = $tomcat::params::version,
+    $start_on_boot = false,
+) inherits tomcat::params {
   include concat::setup
 
   package { "tomcat${version}": ensure => held, }
@@ -52,6 +55,20 @@ class tomcat ($version = $tomcat::params::version) inherits tomcat::params {
     pattern => "/var/lib/tomcat${version}",
     enable  => false,
     require => Package["tomcat${version}"],
+  }
+
+  if $start_on_boot {
+    exec { "enable tomcat autostarting":
+      command => '/usr/sbin/update-rc.d tomcat enable',
+      creates => '/etc/rc2.d/S20tomcat',
+      require => File['/etc/init.d/tomcat'],
+    }
+  } else {
+    exec { "disable tomcat autostarting":
+      command => '/usr/sbin/update-rc.d tomcat disable',
+      creates => '/etc/rc2.d/K80tomcat',
+      require => File['/etc/init.d/tomcat'],
+    }
   }
 
   profile_d::script { 'CATALINA_HOME.sh':
