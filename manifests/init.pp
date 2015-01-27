@@ -22,7 +22,7 @@
 #
 class tomcat (
     $version = $tomcat::params::version,
-    $start_on_boot = false,
+    $start_on_boot = true,
 ) inherits tomcat::params {
   include concat::setup
 
@@ -57,17 +57,29 @@ class tomcat (
     require => Package["tomcat${version}"],
   }
 
+  exec { 'create tomcat init script links':
+    command => '/usr/sbin/update-rc.d tomcat defaults',
+    creates => '/etc/rc0.d/K20tomcat',
+    require => File['/etc/init.d/tomcat'],
+  }
+
   if $start_on_boot {
-    exec { "enable tomcat autostarting":
+    exec { 'enable tomcat autostarting':
       command => '/usr/sbin/update-rc.d tomcat enable',
       creates => '/etc/rc2.d/S20tomcat',
-      require => File['/etc/init.d/tomcat'],
+      require => [
+        File['/etc/init.d/tomcat'],
+        Exec['create tomcat init script links'],
+      ],
     }
   } else {
-    exec { "disable tomcat autostarting":
+    exec { 'disable tomcat autostarting':
       command => '/usr/sbin/update-rc.d tomcat disable',
       creates => '/etc/rc2.d/K80tomcat',
-      require => File['/etc/init.d/tomcat'],
+      require => [
+        File['/etc/init.d/tomcat'],
+        Exec['create tomcat init script links'],
+      ],
     }
   }
 
