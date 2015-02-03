@@ -99,7 +99,7 @@ define tomcat::jndi::database::mysql (
     ]
     $properties = concat($_fixed_properties, $additional_properties)
 
-    $_uri = inline_template('jdbc:<%= @subprotocol %>:<% if @subname %><%= @subname %>:<% end %>//<% @_hosts.each_with_index do |host,index| -%><%= host %><%= "," if index < (_hosts.size - 1) %><% end -%>/<%= @database %>?<% @properties.each_with_index do |property,index| -%><% property.keys.each do |key| -%><%= key %>=<%= property[key] %><%= "&amp;" if index < (properties.size - 1) %><% end -%><% end -%>')
+    $_uri = inline_template('jdbc:<%= @subprotocol %>:<% if @subname %><%= @subname %>:<% end %>//<% @_hosts.each_with_index do |host,index| -%><%= host %><%= "," if index < (@_hosts.size - 1) %><% end -%>/<%= @database %>?<% @properties.each_with_index do |property,index| -%><% property.keys.each do |key| -%><%= key %>=<%= property[key] %><%= "&amp;" if index < (@properties.size - 1) %><% end -%><% end -%>')
 
     tomcat::jndi::resource { "${instance}:${resource_name}":
         instance      => $instance,
