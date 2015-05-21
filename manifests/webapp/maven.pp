@@ -44,6 +44,9 @@ define tomcat::webapp::maven (
         default => undef,
     }
 
+    file {"${tomcat::params::home}/${instance}/tomcat/.plugins/":
+        ensure => 'directory',
+    }
     if (!defined(Maven["/usr/share/java/${artifactid}-${version}.war"])) {
         maven { "/usr/share/java/${artifactid}-${version}.war":
             groupid    => $groupid,
@@ -54,12 +57,24 @@ define tomcat::webapp::maven (
         }
     }
 
-    file { "${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war":
+    #file { "${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war":
+    #    ensure => 'absent',
+    #    before => File["${tomcat::params::home}/${instance}/tomcat/.plugins/${webapp}.war"],
+    #}
+    file { "${tomcat::params::home}/${instance}/tomcat/.plugins/${webapp}.war":
         ensure  => 'link',
         target  => "/usr/share/java/${artifactid}-${version}.war",
         force   => true,
-        require => Maven["/usr/share/java/${artifactid}-${version}.war"],
-        notify  => $notify,
+        require => [Maven["/usr/share/java/${artifactid}-${version}.war"], File["${tomcat::params::home}/${instance}/tomcat/.plugins/"]],
+        notify  => [$notify, Exec["${name}@${instance}:deploy-root"]],
+    }
+
+    #TODO: add exec to cp war from .plugins to webapps after symlink is made.
+    exec { "${name}@${instance}:deploy-root":
+        command => "/bin/cp -L ${tomcat::params::home}/${instance}/tomcat/.plugins/${webapp}.war ${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war",
+        refreshonly => true,
+        creates => "${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war",
+        notify  => Tomcat::Service[$instance],
     }
 
     exec { "${name}@${instance}:clean":
