@@ -51,21 +51,16 @@ define tomcat::lib::maven ($lib = "${name}.jar", $instance, $groupid, $artifacti
 
   
   ensure_resource('file', "${tomcat::params::home}/${instance}/tomcat/.lib/", { 'ensure' => 'directory', })
-  #file { "${tomcat::params::home}/${instance}/tomcat/.lib/":
-  #  ensure => 'directory',
- # }
 
   file { "${tomcat::params::home}/${instance}/tomcat/.lib/${lib}":
     ensure  => 'link',
     target  => "/usr/share/java/${artifactid}-${version}${suffix}.jar",
     force   => true,
     require => [Maven["/usr/share/java/${artifactid}-${version}${suffix}.jar"],File["${tomcat::params::home}/${instance}/tomcat/.lib/"]],
-    notify  => Tomcat::Service[$instance], # F: is het niet beter om deze bij   file { "${tomcat::params::home}/${instance}/tomcat/lib/${lib}": te plakken?
   }
 
   exec { "delete old lib version for ${instance}-${version}-${lib}":
     command => "/bin/rm -f ${tomcat::params::home}/${instance}/tomcat/lib/${lib}",
-    #require => File["${tomcat::params::home}/${instance}/tomcat/lib/${lib}"],
     refreshonly => true,
     subscribe => File["${tomcat::params::home}/${instance}/tomcat/.lib/${lib}"],
     before => File["${tomcat::params::home}/${instance}/tomcat/lib/${lib}"],
@@ -76,5 +71,6 @@ define tomcat::lib::maven ($lib = "${name}.jar", $instance, $groupid, $artifacti
     source => "${tomcat::params::home}/${instance}/tomcat/.lib/${lib}",
     replace => false,
     require => File["${tomcat::params::home}/${instance}/tomcat/.lib/${lib}"],
+    notify  => Tomcat::Service[$instance],
   }
 }

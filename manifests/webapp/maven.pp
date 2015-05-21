@@ -44,9 +44,8 @@ define tomcat::webapp::maven (
         default => undef,
     }
 
-    file {"${tomcat::params::home}/${instance}/tomcat/.plugins/":
-        ensure => 'directory',
-    }
+    ensure_resource('file', "${tomcat::params::home}/${instance}/tomcat/.plugins/", { 'ensure' => 'directory', })
+
     if (!defined(Maven["/usr/share/java/${artifactid}-${version}.war"])) {
         maven { "/usr/share/java/${artifactid}-${version}.war":
             groupid    => $groupid,
