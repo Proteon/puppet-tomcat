@@ -70,6 +70,7 @@ define tomcat::lib::maven ($lib = "${name}.jar", $instance, $groupid, $artifacti
     ensure => 'file',
     source => "${tomcat::params::home}/${instance}/tomcat/.lib/${lib}",
     replace => false,
+    links  => 'follow',
     require => File["${tomcat::params::home}/${instance}/tomcat/.lib/${lib}"],
     notify  => Tomcat::Service[$instance],
   }
