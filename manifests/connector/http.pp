@@ -7,7 +7,7 @@
 # === Authors
 #
 # Sander Bilo <sander@proteon.nl>
-#
+# Simon Smit <simon.johannes.smit@gmail.com>
 # === Copyright
 #
 # Copyright 2013 Proteon.
@@ -27,56 +27,22 @@ define tomcat::connector::http (
     $proxy_port		    = undef,
 ) {
 
+    $_default_attributes = [
+        { 'address' => $address },
+        { 'scheme' => $scheme },
+        { 'maxThreads' => $max_threads },
+        { 'minSpareThreads' => $min_spare_threads },
+        { 'compression' => $compression },
+        { 'compressableMimeType' => $compressable_mime_type },
+        { 'secure' => $secure },
+    ]
+ 
     if ($proxy_port ) {
-        $_attributes = [{
-                'address' => $address
-            }
-            , {
-                'scheme' => $scheme
-            }
-            , {
-                'maxThreads' => $max_threads
-            }
-            , {
-                'minSpareThreads' => $min_spare_threads
-            }
-            , {
-                'compression' => $compression
-            }
-            , {
-                'compressableMimeType' => $compressable_mime_type
-            }
-            , {
-                'secure' => $secure
-            },
-	    {
-                'proxyPort' => $proxy_port
-            }]
+        $_attributes = concat($_default_attributes, [{ 'proxyPort' => $proxy_port }])
     } else {
-
-    	$_attributes = [{
-                'address' => $address
-            }
-            , {
-                'scheme' => $scheme
-            }
-            , {
-                'maxThreads' => $max_threads
-            }
-            , {
-                'minSpareThreads' => $min_spare_threads
-            }
-            , {
-                'compression' => $compression
-            }
-            , {
-                'compressableMimeType' => $compressable_mime_type
-            }
-            , {
-                'secure' => $secure
-            },
-            ]
+    	$_attributes = $_default_attributes
     }
+
     tomcat::connector { $name:
         ensure       => $ensure,
         instance     => $instance,
