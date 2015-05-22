@@ -23,13 +23,12 @@ define tomcat::connector::http (
     $min_spare_threads      = 80,
     $compression            = 'on',
     $secure                 = false,
-    $compressable_mime_type = 'text/html,text/xml,text/plain',) {
-    tomcat::connector { $name:
-        ensure       => $ensure,
-        instance     => $instance,
-        port         => $port,
-        uri_encoding => $uri_encoding,
-        attributes   => [{
+    $compressable_mime_type = 'text/html,text/xml,text/plain',
+    $proxy_port		    = undef,
+) {
+
+    if ($proxy_port ) {
+        $_attributes = [{
                 'address' => $address
             }
             , {
@@ -49,7 +48,40 @@ define tomcat::connector::http (
             }
             , {
                 'secure' => $secure
+            },
+	    {
+                'proxyPort' => $proxy_port
+            }]
+    } else {
+
+    	$_attributes = [{
+                'address' => $address
             }
+            , {
+                'scheme' => $scheme
+            }
+            , {
+                'maxThreads' => $max_threads
+            }
+            , {
+                'minSpareThreads' => $min_spare_threads
+            }
+            , {
+                'compression' => $compression
+            }
+            , {
+                'compressableMimeType' => $compressable_mime_type
+            }
+            , {
+                'secure' => $secure
+            },
             ]
+    }
+    tomcat::connector { $name:
+        ensure       => $ensure,
+        instance     => $instance,
+        port         => $port,
+        uri_encoding => $uri_encoding,
+        attributes   => $_attributes
     }
 }
