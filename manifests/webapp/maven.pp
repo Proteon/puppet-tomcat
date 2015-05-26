@@ -68,7 +68,6 @@ define tomcat::webapp::maven (
     exec { "${name}@${instance}:deploy-${webapp}":
         command => "/bin/cp -L ${tomcat::params::home}/${instance}/tomcat/.plugins/${webapp}.war ${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war",
         refreshonly => true,
-        creates => "${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war",
         notify  => Tomcat::Service[$instance],
     }
 
