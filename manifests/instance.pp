@@ -154,6 +154,13 @@ define tomcat::instance (
         lib        => 'tomcat-el-api.jar',
         artifactid => 'tomcat-el-api',
       }
+      
+      tomcat::lib::maven { "${instance}:ecj":
+        lib        => 'ecj.jar',
+        groupid    => 'org.eclipse.jdt.core.compiler',
+        artifactid => 'ecj',
+        version    => '4.4.2',
+      }
     }
 
     tomcat::lib::maven { "${name}:tomcat-api":
