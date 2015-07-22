@@ -5,7 +5,7 @@ define tomcat::jmx::init (
     concat { "${tomcat::params::home}/${instance}/tomcat/conf/jmxremote.password":
         owner   => $instance,
         group   => $instance,
-        mode    => '0640',
+        mode    => '0600',
         require => File["${tomcat::params::home}/${instance}/tomcat/conf"],
     }
 
