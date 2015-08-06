@@ -74,6 +74,7 @@ define tomcat::jndi::database::mysql (
     $validation_query   = 'SELECT 1',
     $loadbalanced       = false,
     $additional_properties = [],
+    $additional_attributes = [],
 ) {
 
     if ( $loadbalanced ) {
@@ -101,23 +102,27 @@ define tomcat::jndi::database::mysql (
 
     $_uri = inline_template('jdbc:<%= @subprotocol %>:<% if @subname %><%= @subname %>:<% end %>//<% @_hosts.each_with_index do |host,index| -%><%= host %><%= "," if index < (@_hosts.size - 1) %><% end -%>/<%= @database %>?<% @properties.each_with_index do |property,index| -%><% property.keys.each do |key| -%><%= key %>=<%= property[key] %><%= "&amp;" if index < (@properties.size - 1) %><% end -%><% end -%>')
 
+    $_fixed_attributes = [
+        {'auth' => 'Container'},
+        {'username' => $username},
+        {'password' => $password},
+        {'driverClassName' => $driver},
+        {'url' => $_uri},
+        {'initialSize'=> $initial_size },
+        {'maxActive' => $max_active },
+        {'maxIdle' => $max_idle },
+        {'minEvictableIdleTimeMillis' => $min_evictable_time },
+        {'timeBetweenEvictionRunsMillis' => $eviction_interval },
+        {'jmxEnabled' => $jmx_enabled },
+        {'validationQuery' => $validation_query },
+    ]
+
+    $attributes = concat($_fixed_attributes, $additional_attributes)
+
     tomcat::jndi::resource { "${instance}:${resource_name}":
         instance      => $instance,
         resource_name => $resource_name,
-        attributes    => [
-            {'auth' => 'Container'},
-            {'username' => $username},
-            {'password' => $password},
-            {'driverClassName' => $driver},
-            {'url' => $_uri},
-            {'initialSize'=> $initial_size },
-            {'maxActive' => $max_active },
-            {'maxIdle' => $max_idle },
-            {'minEvictableIdleTimeMillis' => $min_evictable_time },
-            {'timeBetweenEvictionRunsMillis' => $eviction_interval },
-            {'jmxEnabled' => $jmx_enabled },
-            {'validationQuery' => $validation_query },
-        ],
+        attributes    => $attributes, 
     }
 
     if(!defined(Tomcat::Lib::Maven["${instance}:mysql-connector-java"])) {
