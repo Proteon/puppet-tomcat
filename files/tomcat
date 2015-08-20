@@ -21,19 +21,21 @@
 PATH=/bin:/usr/bin:/usr/sbin
 errmsg="Do something about that..."
 scriptdir="/opt/tomcat/scripts"
+term_timeout=25 # seconds
+kill_timeout=5 # seconds
 
 # only root should run this one since we want to implement user-per-tomcat
 if [ "$EUID" -ne 0 ]; then
-        echo "Only root should run this script. sorry"
-        exit 1
+	echo "Only root should run this script. sorry"
+	exit 1
 fi
 
 # if --help is specified we can skip the rest
 args='start|stop|restart|status --instance=<instance> --timeout=<timeout>'
 case $1 in
-        --help)
-        echo "Usage: $0 {${args}}"
-        exit 1
+	--help)
+	echo "Usage: $0 {${args}}"
+	exit 1
 ;;
 esac
 
@@ -43,175 +45,195 @@ info() {
 	echo ${1}
 }
 die() {
-        echo -ne '\E[32;31m'"\033[1mERR\033[0m "
-        echo ${1}
-        exit 1
+	echo -ne '\E[32;31m'"\033[1mERR\033[0m "
+	echo ${1}
+	exit 1
 }
 warn() {
-        echo -ne '\E[32;33m'"\033[1mWARN\033[0m "
-        echo ${1}
+	echo -ne '\E[32;33m'"\033[1mWARN\033[0m "
+	echo ${1}
 }
 # basic syntax check
 check_syntax() {
-        # we do this before sourcing so we can spot a syntax error easier
-       syntaxerror=$( egrep -v '^([[:space:]]+)?[a-z]+="?[/.,_[:alnum:]-]+"?([[:space:]]+|[[:space:]]+?\#+(.*)?)?$' $1 | egrep -v '^[[:space:]]+?\#+' | head -n1 )
-        if [ -n "${syntaxerror}" ]; then
-                die "$1 contains a syntax error at: \"$syntaxerror\". $errmsg"
-        fi
+	# we do this before sourcing so we can spot a syntax error easier
+	syntaxerror=$( egrep -v '^([[:space:]]+)?[a-z]+="?[/.,_[:alnum:]-]+"?([[:space:]]+|[[:space:]]+?\#+(.*)?)?$' $1 | egrep -v '^[[:space:]]+?\#+' | head -n1 )
+	if [ -n "${syntaxerror}" ]; then
+		die "$1 contains a syntax error at: \"$syntaxerror\". $errmsg"
+	fi
 }
 start() {
-     	PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
-       	if [ "$PID" != "" ]; then   
-            	info "Already running Tomcat [$tomcat] @ PID: $PID ..."
-        else
-                info "Starting Tomcat [$tomcat]"  
-                su - $tomcat -c "/opt/tomcat/sites/$tomcat/tomcat/bin/startup.sh > /dev/null 2>&1"
-        	sleep $timeout #SB: sleeping to avoid all starting at the same time
+	PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
+	if [ "$PID" != "" ]; then   
+		info "Already running Tomcat [$tomcat] @ PID: $PID ..."
+	else
+		info "Starting Tomcat [$tomcat]"
+		CATALINA_PID="/opt/tomcat/sites/$tomcat/tomcat/work/catalina.pid"
+		su - $tomcat -c "/opt/tomcat/sites/$tomcat/tomcat/bin/startup.sh > /dev/null 2>&1"
+		# Currently the catalina.sh doesn't set the correct pid file, so overriding here
+		pgrep -u $tomcat java > $CATALINA_PID
+		sleep $timeout #SB: sleeping to avoid all starting at the same time
 		status
 	fi
 }
 stop() {
-        PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
-        if [ "$PID" != "" ]; then
-		info "Stopping Tomcat with timeout ${timeout}s [$tomcat] @ PID: $PID "
-                su - $tomcat -c "/opt/tomcat/sites/$tomcat/tomcat/bin/shutdown.sh 2>&1 | grep 'No shutdown port configured.' > /dev/null"
-		if [[ $? -eq 0 ]] ;  then
-			info "No shutdown port configured for [$tomcat]"
-		else
-                	sleep $timeout
-		fi
-                PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
-                if [ "$PID" != "" ]; then
-                        info "The server doesn't seem to stop fast enough or has no shutdown port, killing it"
-                        kill $PID
-                        sleep $timeout
-                        PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
-                        if [ "$PID" != "" ]; then
-                                warn "Kill -9 Tomcat [$tomcat] @ $PID"
-                                kill -9 $PID
-			else
-				info "Regular kill worked for Tomcat [$tomcat]"
-                        fi
-                fi
+	PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
+	if [ "$PID" != "" ]; then
+		info "Stopping Tomcat with terminate timeout ${term_timeout}s and kill timeout ${kill_timeout}s [$tomcat] @ PID: $PID "
+		/sbin/start-stop-daemon --stop --pidfile "/opt/tomcat/sites/$tomcat/tomcat/work/catalina.pid" --user "$tomcat" --retry="TERM/${term_timeout}/KILL/${kill_timeout}"
 		info "Tomcat [$tomcat] stopped"
 	else
 		warn "Tomcat [$tomcat] not running"
 	fi
 }
 status() {
-        PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
-        if [ "$PID" != "" ]; then
-        	info "Tomcat [$tomcat] running @ PID: $PID"
-        else
-                warn "Tomcat [$tomcat] not running!"
-        fi
+	PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
+	if [ "$PID" != "" ]; then
+		info "Tomcat [$tomcat] running @ PID: $PID"
+	else
+		warn "Tomcat [$tomcat] not running!"
+	fi
+}
+clean() {
+	info "Cleaned up `rm -vrf /opt/tomcat/sites/$tomcat/tomcat/work/* | wc -l` file(s) in /opt/tomcat/sites/$tomcat/tomcat/work/"
+	info "Cleaned up `rm -vrf /opt/tomcat/sites/$tomcat/tomcat/temp/* | wc -l` file(s) in /opt/tomcat/sites/$tomcat/tomcat/temp/"
+	info "Tomcat [$tomcat] work and temp directories cleaned out"
 }
 
 # some basic actions needed
 if [ -z "/etc/tomcat.d" ]; then
-        die "includedir unknown. $errmsg"
-        else
-        # guess instance names
-        tomcats=$( ls /etc/tomcat.d/ | egrep '^[._/[:alnum:]-]+$' )
-        if [ "${i#tomcats[@]}" == "0" ]; then
-                die "no config files found in $includedir. sorry"
-        fi
+	die "includedir unknown. $errmsg"
+else
+	# guess instance names
+	tomcats=$( ls /etc/tomcat.d/ | egrep '^[._/[:alnum:]-]+$' )
+	if [ "${i#tomcats[@]}" == "0" ]; then
+		die "no config files found in $includedir. sorry"
+	fi
 fi
 
 # actions
 case $1 in
-        start)
-	timeout="20"
-	if [[  "${2}" =~ "--instance=" ]]; then
-		tomcat="${2}"
-		tomcat="${tomcat##--instance=}"
-		if [[ "${3}" =~ "--timeout=" ]]; then
-			timeout="${3}"
-			timeout="${timeout##--timeout=}"
-		fi
-		start
-	elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then
-		for tomcat in ${tomcats}; do
-			start
-		done
-	else
-		for tomcat in ${tomcats}; do
-			if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
-				start
-				exit
+	start)
+		timeout="20"
+		if [[  "${2}" =~ "--instance=" ]]; then
+			tomcat="${2}"
+			tomcat="${tomcat##--instance=}"
+			if [[ "${3}" =~ "--timeout=" ]]; then
+				timeout="${3}"
+				timeout="${timeout##--timeout=}"
 			fi
-		done 
-		die "I don't know what instance to start, please be more specific."
-	fi
-;;
-    stop)
-    timeout="30"
-        if [[  "${2}" =~ "--instance=" ]]; then
-                tomcat="${2}"
-                tomcat="${tomcat##--instance=}"
-                stop     
-        elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then
-		for tomcat in ${tomcats}; do
-                        stop
-                done
-        else 
-                for tomcat in ${tomcats}; do
-                        if [[ "${PWD}/" =~ "/opt/tomcat/sites/${tomcat}/" ]]; then
-                                stop
-                                exit 
-                        fi
-                done 
-                die "I don't know what instance to stop, please be more specific."
-	fi
-;;
-	restart)
-	timeout="5"
-      	if [[  "${2}" =~ "--instance=" ]]; then
-                tomcat="${2}"
-                tomcat="${tomcat##--instance=}"
-                if [[ "${3}" =~ "--timeout=" ]]; then
-                        timeout="${3}"
-                        timeout="${timeout##--timeout=}"
-                fi
-		stop
-		start
-        elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then                
-		for tomcat in ${tomcats}; do
-                        stop
 			start
-                done
-        else
-                for tomcat in ${tomcats}; do
-                        if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
-                                stop
+		elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then
+			for tomcat in ${tomcats}; do
 				start
-                                exit
-                        fi
-                done
-                die "I don't know what instance to restart, please be more specific."
-        fi
-;;
+			done
+		else
+			for tomcat in ${tomcats}; do
+				if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
+					start
+					exit
+				fi
+			done 
+			die "I don't know what instance to start, please be more specific."
+		fi
+	;;
+	stop)
+		timeout="30"
+		if [[  "${2}" =~ "--instance=" ]]; then
+			tomcat="${2}"
+			tomcat="${tomcat##--instance=}"
+			stop     
+		elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then
+			for tomcat in ${tomcats}; do
+				stop
+			done
+		else 
+			for tomcat in ${tomcats}; do
+				if [[ "${PWD}/" =~ "/opt/tomcat/sites/${tomcat}/" ]]; then
+					stop
+					exit 
+				fi
+			done 
+			die "I don't know what instance to stop, please be more specific."
+		fi
+	;;
+	restart)
+		timeout="5"
+		if [[  "${2}" =~ "--instance=" ]]; then
+			tomcat="${2}"
+			tomcat="${tomcat##--instance=}"
+			if [[ "${3}" =~ "--timeout=" ]]; then
+				timeout="${3}"
+				timeout="${timeout##--timeout=}"
+			fi
+			stop
+			start
+		elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then                
+			for tomcat in ${tomcats}; do
+				stop
+				start
+			done
+		else
+			for tomcat in ${tomcats}; do
+				if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
+					stop
+					start
+					exit
+				fi
+			done
+			die "I don't know what instance to restart, please be more specific."
+		fi
+	;;
+	clean-restart)
+		timeout="5"
+		if [[  "${2}" =~ "--instance=" ]]; then
+			tomcat="${2}"
+			tomcat="${tomcat##--instance=}"
+			if [[ "${3}" =~ "--timeout=" ]]; then
+				timeout="${3}"
+				timeout="${timeout##--timeout=}"
+			fi
+			stop
+			clean
+			start
+		elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then                
+			for tomcat in ${tomcats}; do
+				stop
+				clean
+				start
+			done
+		else
+			for tomcat in ${tomcats}; do
+				if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
+					stop
+					clean
+					start
+					exit
+				fi
+			done
+			die "I don't know what instance to restart, please be more specific."
+		fi
+	;;
 	status)
-        if [[  "${2}" =~ "--instance=" ]]; then
-                tomcat="${2}"
-                tomcat="${tomcat##--instance=}"
-                status
-        elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then                
-		for tomcat in ${tomcats}; do
-                        status
-                done
-        else
-                for tomcat in ${tomcats}; do
-                        if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
-                                status
-                                exit
-                        fi
-                done
-		die "I don't know what instance you want to see, please be more specific."
-	fi
-;;
-        *)
-        $0 --help
-;;
+		if [[  "${2}" =~ "--instance=" ]]; then
+			tomcat="${2}"
+			tomcat="${tomcat##--instance=}"
+			status
+		elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then                
+			for tomcat in ${tomcats}; do
+				status
+			done
+		else
+			for tomcat in ${tomcats}; do
+				if [[ "${PWD}/" =~ "$basedir/${tomcat}/" ]]; then
+					status
+					exit
+				fi
+			done
+			die "I don't know what instance you want to see, please be more specific."
+		fi
+	;;
+	*)
+		$0 --help
+	;;
 esac
 exit 0
