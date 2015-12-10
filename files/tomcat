@@ -77,6 +77,11 @@ start() {
 }
 stop() {
 	PID=`ps ax | grep "org.apache.catalina.startup.Bootstrap start" |grep sites/$tomcat/tomcat | awk '{printf $1}'`
+        # No sense in doing any further checking if nothing is already running
+        if [ "$PID" == "" ]; then
+                warn "Tomcat [$tomcat] not running"
+                return
+        fi
 	# make sure the pidfile exists, if it doesn't exist, then attempt to recreate it
 	PIDFILE="/opt/tomcat/sites/$tomcat/tomcat/work/catalina.pid"
 	if [ ! -f $PIDFILE ]; then
@@ -89,7 +94,6 @@ stop() {
 			echo $PID > $PIDFILE
 		fi
 	fi
-
 	if [ "$PID" != "" ]; then
 		info "Stopping Tomcat with terminate timeout ${term_timeout}s and kill timeout ${kill_timeout}s [$tomcat] @ PID: $PID "
 		/sbin/start-stop-daemon --stop --pidfile "/opt/tomcat/sites/$tomcat/tomcat/work/catalina.pid" --user "$tomcat" --retry="TERM/${term_timeout}/KILL/${kill_timeout}"
