@@ -98,6 +98,7 @@ define tomcat::instance (
     '-XX:+UseCompressedOops',
     '-XX:+DisableExplicitGC',
     '-Dfile.encoding=UTF-8'],
+  $common_loader     = undef,
   $ensure            = present,) {
   include tomcat
 
