@@ -2,7 +2,7 @@ package.access=sun.,org.apache.catalina.,org.apache.coyote.,org.apache.tomcat.,o
 
 package.definition=sun.,java.,org.apache.catalina.,org.apache.coyote.,org.apache.tomcat.,org.apache.jasper.
 
-common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,<% if !@tomcat_version %>${catalina.home}/lib,${catalina.home}/lib/*.jar,<% end -%>/var/lib/tomcat<%= scope.lookupvar('::tomcat::version') %>/common/classes,/var/lib/tomcat<%= scope.lookupvar('::tomcat::version') %>/common/*.jar<% if @common_loader %>,<%= @common_loader %><% end -%>
+<% if @common_loader %>common.loader=<%= @common_loader %><% else %>common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,<% if !@tomcat_version %>${catalina.home}/lib,${catalina.home}/lib/*.jar,<% end -%>/var/lib/tomcat<%= scope.lookupvar('::tomcat::version') %>/common/classes,/var/lib/tomcat<%= scope.lookupvar('::tomcat::version') %>/common/*.jar<% end -%>
 
 
 server.loader=/var/lib/tomcat<%= scope.lookupvar('::tomcat::version') %>/server/classes,/var/lib/tomcat<%= scope.lookupvar('::tomcat::version') %>/server/*.jar
