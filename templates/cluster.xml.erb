@@ -1,17 +1,17 @@
-<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster" channelSendOptions="<%= channel_send_options %>">
+<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster" channelSendOptions="<%= @channel_send_options %>">
 	<Manager className="org.apache.catalina.ha.session.DeltaManager" expireSessionsOnShutdown="false" notifyListenersOnReplication="true"/>
         <Channel className="org.apache.catalina.tribes.group.GroupChannel">
        		<Membership className="org.apache.catalina.tribes.membership.McastService"
-                	address="<%= multicast_ip %>"
-                        port="<%= multicast_port %>"
-                        frequency="<%= multicast_frequency %>"
-                        dropTime="<%= multicast_droptime %>"/>
+                	address="<%= @multicast_ip %>"
+                        port="<%= @multicast_port %>"
+                        frequency="<%= @multicast_frequency %>"
+                        dropTime="<%= @multicast_droptime %>"/>
             	<Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
-                      	address="<%= receiver_ip %>"
-                      	port="<%= receiver_port %>"
-                      	autoBind="<%= receiver_autobind %>"
-                      	selectorTimeout="<%= receiver_selector_timeout %>"
-                      	maxThreads="<%= receiver_max_threads %>"/>
+                      	address="<%= @receiver_ip %>"
+                      	port="<%= @receiver_port %>"
+                      	autoBind="<%= @receiver_autobind %>"
+                      	selectorTimeout="<%= @receiver_selector_timeout %>"
+                      	maxThreads="<%= @receiver_max_threads %>"/>
 
             	<Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter">
               		<Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"/>
