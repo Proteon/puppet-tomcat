@@ -44,6 +44,10 @@ define tomcat::webapp::maven (
         default => Exec["${name}@${instance}:deploy-${webapp}"],
     }
 
+    $execnotify = $webapp ? {
+        'ROOT'  => Tomcat::Service[$instance],
+        default => undef,
+    }
     ensure_resource('file', "${tomcat::params::home}/${instance}/tomcat/.plugins/", { 'ensure' => 'directory', })
 
     if (!defined(Maven["/usr/share/java/${artifactid}-${version}.war"])) {
@@ -68,7 +72,7 @@ define tomcat::webapp::maven (
     exec { "${name}@${instance}:deploy-${webapp}":
         command => "/bin/cp -L ${tomcat::params::home}/${instance}/tomcat/.plugins/${webapp}.war ${tomcat::params::home}/${instance}/tomcat/webapps/${webapp}.war",
         refreshonly => true,
-        notify  => Tomcat::Service[$instance],
+        notify  => $execnotify, #Tomcat::Service[$instance],
     }
 
     exec { "${name}@${instance}:clean":
