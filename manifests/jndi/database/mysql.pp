@@ -77,7 +77,7 @@ define tomcat::jndi::database::mysql (
     $additional_attributes = [],
 ) {
 
-    if ( $loadbalanced == true ) {
+    if ( $loadbalanced == true or $loadbalanced == 'true') {
         $jdbc_prefix = 'jdbc:mysql:loadbalance:'
         $subname = 'loadbalance'
     } else {
