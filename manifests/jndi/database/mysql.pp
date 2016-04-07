@@ -75,6 +75,7 @@ define tomcat::jndi::database::mysql (
     $loadbalanced       = false,
     $additional_properties = [],
     $additional_attributes = [],
+    $type                  = 'context',
 ) {
 
     if ( $loadbalanced == true or $loadbalanced == 'true') {
@@ -123,6 +124,15 @@ define tomcat::jndi::database::mysql (
         instance      => $instance,
         resource_name => $resource_name,
         attributes    => $attributes, 
+        type          => $type,
+    }
+
+    if( $type == 'server' ) {
+        tomcat::jndi::resourcelink { "resourcelink for ${instance}:${resource_name}":
+            instance      => $instance,
+            resourcelink_name => $resource_name,
+            attributes    => [ {'global' => $resource_name }, { 'type' => 'javax.sql.DataSource' },]
+        }
     }
 
     if(!defined(Tomcat::Lib::Maven["${instance}:mysql-connector-java"])) {
