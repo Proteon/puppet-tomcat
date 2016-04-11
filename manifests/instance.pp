@@ -257,6 +257,14 @@ define tomcat::instance (
           lib        => 'tomcat-websocket.jar',
           artifactid => 'tomcat-websocket',
         }
+        tomcat::lib::maven { "${name}:tomcat-util-scan":
+          lib        => 'tomcat-util-scan.jar',
+          artifactid => 'tomcat-util-scan',
+        }
+        tomcat::lib::maven { "${name}:tomcat-jni":
+          lib        => 'tomcat-jni.jar',
+          artifactid => 'tomcat-jni',
+        }
       }
     }
   }
@@ -340,9 +348,11 @@ define tomcat::instance (
     tomcat::jmx::init { $name: }
   }
 
-  tomcat::listener { "${name}:org.apache.catalina.core.JasperListener":
-    instance   => $name,
-    class_name => 'org.apache.catalina.core.JasperListener',
+  if ($tomcat::version < 8) {
+    tomcat::listener { "${name}:org.apache.catalina.core.JasperListener":
+      instance   => $name,
+      class_name => 'org.apache.catalina.core.JasperListener',
+    }
   }
 
   tomcat::listener { "${name}:org.apache.catalina.core.JreMemoryLeakPreventionListener":
