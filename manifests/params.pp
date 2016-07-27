@@ -16,8 +16,9 @@
 #
 # Copyright 2013 Proteon.
 #
-class tomcat::params {
+class tomcat::params (
+    $version = 7
+) {
     $root                           = '/opt/tomcat'
     $home                           = "${root}/sites"
-    $version                        = 7
 }

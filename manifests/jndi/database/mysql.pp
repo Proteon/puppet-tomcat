@@ -78,6 +78,12 @@ define tomcat::jndi::database::mysql (
     $type                  = 'context',
 ) {
 
+    if ( $tomcat::params::version >= 8) {
+        $_max_connections = 'maxTotal'
+    } else {
+        $_max_connections = 'maxActive'
+    }
+    
     if ( $loadbalanced == true or $loadbalanced == 'true') {
         $jdbc_prefix = 'jdbc:mysql:loadbalance:'
         $subname = 'loadbalance'
@@ -110,7 +116,7 @@ define tomcat::jndi::database::mysql (
         {'driverClassName' => $driver},
         {'url' => $_uri},
         {'initialSize'=> $initial_size },
-        {'maxActive' => $max_active },
+        { "${_max_connections}" => $max_active },
         {'maxIdle' => $max_idle },
         {'minEvictableIdleTimeMillis' => $min_evictable_time },
         {'timeBetweenEvictionRunsMillis' => $eviction_interval },
