@@ -99,6 +99,7 @@ define tomcat::instance (
     '-XX:+DisableExplicitGC',
     '-Dfile.encoding=UTF-8'],
   $common_loader     = undef,
+  $manage_web        = true, # if false, then let someone else deploy web.xml and web-mime-mappings.xml
   $ensure            = present,) {
   include tomcat
 
@@ -315,18 +316,20 @@ define tomcat::instance (
     notify => Tomcat::Service[$name],
   }
 
-  tomcat::web::init { $name:
-    ensure         => $ensure,
-    tomcat_version => $derived_tomcat_version,
-    notify         => Tomcat::Service[$name],
-  }
+  if $manage_web == true {
+    tomcat::web::init { $name:
+      ensure         => $ensure,
+      tomcat_version => $derived_tomcat_version,
+      notify         => Tomcat::Service[$name],
+    }
 
-  if (!defined(Tomcat::Web::Servlet["${name}:default"])) {
-    tomcat::web::servlet::default { $name: }
-  }
-
-  if (!defined(Tomcat::Web::Servlet["${name}:jsp"])) {
-    tomcat::web::servlet::jsp { $name: }
+    if (!defined(Tomcat::Web::Servlet["${name}:default"])) {
+      tomcat::web::servlet::default { $name: }
+    }
+  
+    if (!defined(Tomcat::Web::Servlet["${name}:jsp"])) {
+      tomcat::web::servlet::jsp { $name: }
+    }
   }
 
   if (!defined(Tomcat::Connector[$name])) {
