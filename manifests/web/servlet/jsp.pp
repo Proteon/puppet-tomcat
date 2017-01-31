@@ -17,6 +17,7 @@ define tomcat::web::servlet::jsp (
     $gen_string_as_char_array   = true,
     $trim_spaces                = true,
     $x_powered_by               = false,
+    $mapped_file                = false,
     $modification_test_interval = 4,
     $mappings                   = ['*.jsp', '*.jspx'],
     $load_on_startup            = 3
@@ -43,6 +44,9 @@ define tomcat::web::servlet::jsp (
             }
             , {
                 'xpoweredBy' => $x_powered_by
+            }
+            , {
+                'mappedFile' => $mapped_file
             }
             ],
         mappings        => $mappings,
