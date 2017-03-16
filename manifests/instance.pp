@@ -114,6 +114,7 @@ define tomcat::instance (
       undef   => $::lsbdistrelease ? {
         '12.04' => '7.0.26',
         '14.04' => '7.0.52',
+        '16.04' => '7.0.68',
       },
       default => $tomcat_version,
     },
