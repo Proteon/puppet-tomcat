@@ -334,7 +334,7 @@ define tomcat::instance (
     }
   }
 
-  if (!$default_connector) {
+  if ($default_connector) {
     if (!defined(Tomcat::Connector[$name])) {
       tomcat::connector::http { $name: ensure => $ensure, }
     }
