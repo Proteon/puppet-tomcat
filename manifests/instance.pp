@@ -99,6 +99,7 @@ define tomcat::instance (
     '-XX:+DisableExplicitGC',
     '-Dfile.encoding=UTF-8'],
   $common_loader     = undef,
+  $default_connector = true,
   $manage_web        = true, # if false, then let someone else deploy web.xml and web-mime-mappings.xml
   $ensure            = present,) {
   include tomcat
@@ -333,8 +334,10 @@ define tomcat::instance (
     }
   }
 
-  if (!defined(Tomcat::Connector[$name])) {
-    tomcat::connector::http { $name: ensure => $ensure, }
+  if (!$default_connector) {
+    if (!defined(Tomcat::Connector[$name])) {
+      tomcat::connector::http { $name: ensure => $ensure, }
+    }
   }
 
   if ($apr_enabled and !$tomcat_version) {
