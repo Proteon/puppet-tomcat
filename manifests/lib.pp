@@ -28,7 +28,9 @@ define tomcat::lib ($instance, $lib = "${name}.jar", $source) {
     file { "${tomcat::params::home}/${instance}/tomcat/lib/${lib}":
         source => $source,
         owner  => $instance,
+        group  => $instance,
         mode   => '0644',
         notify => Tomcat::Service[$instance],
     }
 }
+
