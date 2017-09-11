@@ -116,6 +116,12 @@ status() {
 	fi
 }
 clean() {
+	if [ -d "/opt/tomcat/sites/$tomcat/osgi/state/" ]; then
+		info "Cleaned up `rm -vrf /opt/tomcat/sites/$tomcat/osgi/state/* | wc -l` file(s) in /opt/tomcat/sites/$tomcat/osgi/state/"
+	fi
+	if [ -d "/opt/tomcat/sites/$tomcat/work/" ]; then
+		info "Cleaned up `rm -vrf /opt/tomcat/sites/$tomcat/work/* | wc -l` file(s) in /opt/tomcat/sites/$tomcat/work/"
+	fi
 	info "Cleaned up `rm -vrf /opt/tomcat/sites/$tomcat/tomcat/work/* | wc -l` file(s) in /opt/tomcat/sites/$tomcat/tomcat/work/"
 	info "Cleaned up `rm -vrf /opt/tomcat/sites/$tomcat/tomcat/temp/* | wc -l` file(s) in /opt/tomcat/sites/$tomcat/tomcat/temp/"
 	info "Tomcat [$tomcat] work and temp directories cleaned out"
