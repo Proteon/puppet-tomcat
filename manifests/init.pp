@@ -60,14 +60,14 @@ class tomcat (
 
     exec { 'create tomcat init script links':
         command => '/usr/sbin/update-rc.d tomcat defaults',
-        creates => '/etc/rc0.d/K20tomcat',
+        creates => '/etc/rc0.d/K01tomcat',
         require => File['/etc/init.d/tomcat'],
     }
 
     if $start_on_boot {
         exec { 'enable tomcat autostarting':
             command => '/usr/sbin/update-rc.d tomcat enable',
-            creates => '/etc/rc2.d/S20tomcat',
+            creates => '/etc/rc2.d/S02tomcat',
             require => [
                 File['/etc/init.d/tomcat'],
                 Exec['create tomcat init script links'],
@@ -76,7 +76,7 @@ class tomcat (
     } else {
         exec { 'disable tomcat autostarting':
             command => '/usr/sbin/update-rc.d tomcat disable',
-            creates => '/etc/rc2.d/K80tomcat',
+            onlyif  => '/bin/bash -c "[[ -L /etc/rc2.d/S02tomcat ]]"',
             require => [
                 File['/etc/init.d/tomcat'],
                 Exec['create tomcat init script links'],
