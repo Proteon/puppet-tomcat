@@ -76,6 +76,7 @@ define tomcat::instance (
   $auto_deploy       = true,
   $deploy_on_startup = true,
   $java_version      = 'openjdk_1_7_0',
+  $java_home         = undef,
   $tomcat_version    = undef,
   $tomee_version     = undef,
   $logrotate         = false, # use a logrotate config
@@ -276,8 +277,11 @@ define tomcat::instance (
     tomcat::tomee::init { $name: version => $tomee_version }
   }
 
-  $java_home_name = "::java::${java_version}::home"
-
+  if ($java_home) {
+    $java_home_name = 'java_home'
+  } else {
+    $java_home_name = "::java::${java_version}::home"
+  }
   $instance_home = "${tomcat::params::home}/${name}"
 
   tomcat::service { $name:
