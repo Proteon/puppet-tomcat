@@ -76,6 +76,7 @@ define tomcat::jndi::database::mysql (
     $additional_properties = [],
     $additional_attributes = [],
     $type                  = 'context',
+    $connector_version  = '5.1.29',
 ) {
 
     if ( $tomcat::params::version >= 8) {
@@ -147,7 +148,8 @@ define tomcat::jndi::database::mysql (
 	        instance   => $instance,
 	        groupid    => 'mysql',
 	        artifactid => 'mysql-connector-java',
-	        version    => '5.1.29',
+	        version    => $connector_version,
 	    }
     }
 }
+
