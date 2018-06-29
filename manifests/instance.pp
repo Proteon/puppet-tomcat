@@ -270,6 +270,13 @@ define tomcat::instance (
           artifactid => 'tomcat-jni',
         }
       }
+
+      if ($derived_tomcat_version >= '8.5.0') {
+        tomcat::lib::maven { "${name}:tomcat-jaspic-api":
+          lib         => 'tomcat-jaspic-api.jar',
+          artifactid  => 'tomcat-jaspic-api',
+        }
+      }
     }
   }
 
