@@ -1,8 +1,12 @@
 export JAVA_HOME="<%= scope.lookupvar(@java_home_name) %>"
 
-<% if @tomee_version %>JAVA_OPTS=""-javaagent:$CATALINA_BASE/lib/openejb-javaagent.jar" $JAVA_OPTS"<%- end %>
+<% if @tomee_version %>JAVA_OPTS=""-javaagent:$CATALINA_BASE/lib/openejb-javaagent.jar" $JAVA_OPTS"<%- end -%>
+<% @setenv_vars.each do |hash| -%><% hash.keys.each do |key| -%>export <%= key -%>="<%= hash[key] %>"<% end %>
+<% end -%>
 
 <% if @jmx_enabled %>export CATALINA_OPTS="${CATALINA_OPTS} -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=<%= @jmx_port %> -Dcom.sun.management.jmxremote.ssl=<%= @jmx_ssl %> -Dcom.sun.management.jmxremote.authenticate=<%= @jmx_authenticate %> -Djava.rmi.server.hostname=<%= @jmx_ip %>"<%- end %>
 <% if @pidfile_enabled %>export CATALINA_PID="${CATALINA_BASE}/work/catalina.pid"<% end %>
 export CATALINA_OPTS="${CATALINA_OPTS} -Xmx<%= @max_heap %> -Xms<%= @min_heap %> -XX:PermSize=<%= @min_perm %> -XX:MaxPermSize=<%= @max_perm %>"
-export CATALINA_OPTS="${CATALINA_OPTS} <% @catalina_opts.each do |val| -%><%= val %> <% end -%>"
+<% @catalina_opts.each do |val| -%>export CATALINA_OPTS="${CATALINA_OPTS} <%= val %>"
+<% end -%>
+

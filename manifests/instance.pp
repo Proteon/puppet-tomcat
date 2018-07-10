@@ -99,6 +99,7 @@ define tomcat::instance (
     '-XX:+UseCompressedOops',
     '-XX:+DisableExplicitGC',
     '-Dfile.encoding=UTF-8'],
+  $setenv_vars       = [],
   $common_loader     = undef,
   $default_connector = true,
   $manage_web        = true, # if false, then let someone else deploy web.xml and web-mime-mappings.xml
