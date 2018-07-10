@@ -59,32 +59,32 @@
 # Copyright 2013 Proteon.
 #
 define tomcat::instance (
-  $shutdown_port     = -1,
-  $apr_enabled       = true,
-  $pidfile_enabled   = true,
-  $jmx_enabled       = false,
-  $jmx_ip            = '127.0.0.1',
-  $jmx_port          = 8050,
-  $jmx_ssl           = false,
-  $jmx_authenticate  = false,
-  $jvmroute	     = undef,
-  $max_heap          = '1024m',
-  $min_heap          = '1024m',
-  $min_perm          = '384m',
-  $max_perm          = '384m',
-  $unpack_wars       = true,
-  $auto_deploy       = true,
-  $deploy_on_startup = true,
-  $java_version      = 'openjdk_1_7_0',
-  $java_home         = undef,
-  $tomcat_version    = undef,
-  $tomee_version     = undef,
-  $logrotate         = false, # use a logrotate config
-  $rotatelogs        = false, # use a rotatelogs binary
-  $rotatelogs_bin    = '/usr/sbin/rotatelogs',
-  $rotatelogs_options = '',
+  $shutdown_port        = -1,
+  $apr_enabled          = true,
+  $pidfile_enabled      = true,
+  $jmx_enabled          = false,
+  $jmx_ip               = '127.0.0.1',
+  $jmx_port             = 8050,
+  $jmx_ssl              = false,
+  $jmx_authenticate     = false,
+  $jvmroute	            = undef,
+  $max_heap             = '1024m',
+  $min_heap             = '1024m',
+  $min_perm             = '384m',
+  $max_perm             = '384m',
+  $unpack_wars          = true,
+  $auto_deploy          = true,
+  $deploy_on_startup    = true,
+  $java_version         = 'openjdk_1_8_0',
+  $java_home            = undef,
+  $tomcat_version       = undef,
+  $tomee_version        = undef,
+  $logrotate            = false, # use a logrotate config
+  $rotatelogs           = false, # use a rotatelogs binary
+  $rotatelogs_bin       = '/usr/sbin/rotatelogs',
+  $rotatelogs_options   = '',
   $rotatelogs_file_size = 1024M,
-  $catalina_opts     = [
+  $catalina_opts        = [
     '-d64',
     '-XX:SurvivorRatio=65536',
     '-XX:TargetSurvivorRatio=0',
@@ -99,11 +99,12 @@ define tomcat::instance (
     '-XX:+UseCompressedOops',
     '-XX:+DisableExplicitGC',
     '-Dfile.encoding=UTF-8'],
-  $setenv_vars       = [],
-  $common_loader     = undef,
-  $default_connector = true,
-  $manage_web        = true, # if false, then let someone else deploy web.xml and web-mime-mappings.xml
-  $ensure            = present,) {
+  $setenv_vars          = [],
+  $common_loader        = undef,
+  $default_connector    = true,
+  $manage_web           = true, # if false, then let someone else deploy web.xml and web-mime-mappings.xml
+  $ensure               = present,
+) {
   include tomcat
 
   $java_class_name = "::java::${java_version}"
