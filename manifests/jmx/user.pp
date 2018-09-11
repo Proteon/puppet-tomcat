@@ -6,12 +6,12 @@ define tomcat::jmx::user (
     concat::fragment { "${instance}:jmx:${username}:password":
         target  => "${tomcat::params::home}/${instance}/tomcat/conf/jmxremote.password",
         order   => 00,
-        content => "${username} ${password}",
+        content => "${username} ${password}\n",
     }
 
     concat::fragment { "${instance}:jmx:${username}:access":
         target  => "${tomcat::params::home}/${instance}/tomcat/conf/jmxremote.access",
         order   => 00,
-        content => "${username} ${permission}",
+        content => "${username} ${permission}\n",
     }
 }
