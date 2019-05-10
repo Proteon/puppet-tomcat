@@ -31,7 +31,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # if --help is specified we can skip the rest
-args='start|clean-start|stop|restart|clean-restart|status --instance=<instance> --timeout=<timeout>'
+args='start|clean-start|stop|clean-stop|restart|clean-restart|status --instance=<instance> --timeout=<timeout>'
 case $1 in
 	--help)
 	echo "Usage: $0 {${args}}"
@@ -209,6 +209,29 @@ case $1 in
 			done 
 			die "I don't know what instance to stop, please be more specific."
 		fi
+	;;
+        clean-stop)
+            timeout="30"
+            if [[  "${2}" =~ "--instance=" ]]; then
+            	tomcat="${2}"
+            	tomcat="${tomcat##--instance=}"
+            	stop
+            	clean
+            elif [[ "`dirname $0`" =~ (/etc/init.d|/etc/rc[0-9].d) ]]; then
+            	for tomcat in ${tomcats}; do
+                	stop
+                	clean
+            	done
+            else
+            	for tomcat in ${tomcats}; do
+                	if [[ "${PWD}/" =~ "/opt/tomcat/sites/${tomcat}/" ]]; then
+                    		stop
+                    		clean
+                    		exit
+                	fi
+            	done
+            	die "I don't know what instance to stop, please be more specific."
+            fi
 	;;
 	restart)
 		timeout="5"
