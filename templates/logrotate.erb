@@ -5,5 +5,6 @@
     compress
     delaycompress
     missingok
-    create 640 <%= @name %> <%= @name %>
+    create 640 <%= @name %> <%= @name %><% if @logrotate_additional_config %>
+    <%= @logrotate_additional_config %> <% end %>
 }
