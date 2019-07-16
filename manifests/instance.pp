@@ -80,7 +80,7 @@ define tomcat::instance (
   $tomcat_version       = undef,
   $tomee_version        = undef,
   $logrotate            = false, # use a logrotate config
-  $$logrotate_additional_config = undef,
+  $logrotate_additional_config = undef,
   $rotatelogs           = false, # use a rotatelogs binary
   $rotatelogs_bin       = '/usr/sbin/rotatelogs',
   $rotatelogs_options   = '',
