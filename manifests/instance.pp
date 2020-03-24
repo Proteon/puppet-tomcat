@@ -105,6 +105,7 @@ define tomcat::instance (
   $default_connector    = true,
   $manage_web           = true, # if false, then let someone else deploy web.xml and web-mime-mappings.xml
   $ensure               = present,
+  $extra_context	= undef,
 ) {
   include tomcat
 

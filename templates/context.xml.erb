@@ -6,7 +6,7 @@
 ]>
 <Context>
     <WatchedResource>WEB-INF/web.xml</WatchedResource>
-	
+    <% if @extra_context %><%=@extra_context %><% end %>
 	&context-jndi-resources;
 
     &context-jndi-resourcelinks;
